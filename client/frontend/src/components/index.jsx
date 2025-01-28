@@ -1,23 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, Typography, Button, TextField, Grid, Box } from '@mui/material';
+import { Card, CardContent, Typography, Button, TextField, Grid, Box, Alert, CircularProgress } from '@mui/material';
+import axios from 'axios';
 
 const Bidding = () => {
   const [products, setProducts] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
   const [bidAmount, setBidAmount] = useState("");
-
-  // Fetch products (dummy data for now)
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  
+  
   useEffect(() => {
-    setProducts([
-      { id: 1, name: "Product 1", description: "Description 1", startingPrice: 100, highestBid: 150, endTime: "2025-02-01T12:00:00" },
-      { id: 2, name: "Product 2", description: "Description 2", startingPrice: 200, highestBid: 250, endTime: "2025-02-02T12:00:00" },
-    ]);
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get('http://localhost:5000/products');
+        setProducts(response.data);
+      } catch (err) {
+        setError("Failed to load products. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
   }, []);
 
-  const handleBid = (productId) => {
-    // Handle bid placement logic (mock)
-    alert(`Bid of ${bidAmount} placed on product ${productId}`);
-    setBidAmount("");
+  const handleBid = async (productId, currentHighestBid) => {
+    if (!bidAmount || parseFloat(bidAmount) <= currentHighestBid) {
+      setError("Your bid must be higher than the current highest bid.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await axios.post(`http://localhost:5000/products/${productId}/bid`, {
+        bidAmount: parseFloat(bidAmount),
+      });
+      setSuccess(response.data.message);
+      setBidAmount("");
+      
+      
+      const updatedProducts = await axios.get('http://localhost:5000/products');
+      setProducts(updatedProducts.data);
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to place bid. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -25,6 +58,15 @@ const Bidding = () => {
       <Typography variant="h4" gutterBottom>
         Bidding Application
       </Typography>
+
+      {/* Show success or error messages */}
+      {error && <Alert severity="error" style={{ marginBottom: "16px" }}>{error}</Alert>}
+      {success && <Alert severity="success" style={{ marginBottom: "16px" }}>{success}</Alert>}
+
+      {/* Show loading spinner */}
+      {loading && <CircularProgress style={{ margin: "20px auto", display: "block" }} />}
+
+      {/* Product List */}
       <Grid container spacing={4}>
         {products.map((product) => (
           <Grid item xs={12} sm={6} md={4} key={product.id}>
@@ -35,7 +77,9 @@ const Bidding = () => {
                   {product.description}
                 </Typography>
                 <Typography variant="body1">Starting Price: ${product.startingPrice}</Typography>
-                <Typography variant="body1">Highest Bid: ${product.highestBid || "None"}</Typography>
+                <Typography variant="body1">
+                  Highest Bid: ${product.highestBid || "None"}
+                </Typography>
                 <Typography variant="body2" color="error">
                   Ends: {new Date(product.endTime).toLocaleString()}
                 </Typography>
@@ -53,8 +97,8 @@ const Bidding = () => {
                     variant="contained"
                     color="primary"
                     fullWidth
-                    onClick={() => handleBid(product.id)}
-                    disabled={new Date() > new Date(product.endTime)}
+                    onClick={() => handleBid(product.id, product.highestBid || product.startingPrice)}
+                    disabled={new Date() > new Date(product.endTime) || loading}
                     style={{ marginTop: "8px" }}
                   >
                     Place Bid

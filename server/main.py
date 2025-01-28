@@ -74,7 +74,7 @@ def get_products():
     return jsonify(result), 200
 
 # Place a bid
-@authenticate_user
+
 @app.route('/bids', methods=['POST'])
 def place_bid():
     data = request.get_json()
@@ -143,5 +143,6 @@ def login():
         return jsonify({"error": str(e)}), 400
 
 if __name__ == '__main__':
-    db.create_all()
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)

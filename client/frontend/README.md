@@ -73,6 +73,14 @@ This will run the app on [http://localhost:3000](http://localhost:3000).
 
 ---
 
+## Routes
+        <Route path="/bidding" element={<Bidding />} />
+        <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/add-product" element={<AddProduct />} />
+
+
 ## Future Improvements
 
 - Add authentication for users and admins.

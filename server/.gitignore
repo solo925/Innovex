@@ -1,2 +1,43 @@
-venv
-.venv
+# Python bytecode files
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Virtual environment
+venv/
+env/
+ENV/
+.venv/
+
+# Flask instance folder
+instance/
+
+# Flask config file
+*.env
+
+# Database files
+*.sqlite3
+*.db
+
+# Pytest
+.cache/
+*.cover
+*.py,cover
+nosetests.xml
+coverage.xml
+*.hypothesis/
+
+# Logs
+*.log
+
+# IDE/editor folders
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
